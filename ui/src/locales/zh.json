@@ -31,7 +31,8 @@
     "host": "主机",
     "port": "端口",
     "apikey": "API 密钥",
-    "timeout": "API 超时时间 (毫秒)"
+    "timeout": "API 超时时间 (毫秒)",
+    "proxy_url": "代理地址"
   },
   "transformers": {
     "title": "自定义转换器",
@@ -76,7 +77,11 @@
     "add_parameter": "添加参数",
     "parameter_name": "参数名称",
     "parameter_value": "参数值",
-    "selected_transformers": "已选转换器"
+    "selected_transformers": "已选转换器",
+    "import_from_template": "从模板导入",
+    "no_templates_found": "未找到模板",
+    "select_template": "选择一个模板..."
+
   },
   "router": {
     "title": "路由",

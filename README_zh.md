@@ -252,9 +252,27 @@ Transformers 允许您修改请求和响应负载，以确保与不同提供商 
 
 **可用的内置 Transformer：**
 
+-   `Anthropic`: 如果你只使用这一个转换器，则会直接透传请求和响应(你可以用它来接入其他支持Anthropic端点的服务商)。
 -   `deepseek`: 适配 DeepSeek API 的请求/响应。
 -   `gemini`: 适配 Gemini API 的请求/响应。
--   `openrouter`: 适配 OpenRouter API 的请求/响应。
+-   `openrouter`: 适配 OpenRouter API 的请求/响应。它还可以接受一个 `provider` 路由参数，以指定 OpenRouter 应使用哪些底层提供商。有关更多详细信息，请参阅 [OpenRouter 文档](https://openrouter.ai/docs/features/provider-routing)。请参阅下面的示例：
+    ```json
+      "transformer": {
+        "use": ["openrouter"],
+        "moonshotai/kimi-k2": {
+          "use": [
+            [
+              "openrouter",
+              {
+                "provider": {
+                  "only": ["moonshotai/fp8"]
+                }
+              }
+            ]
+          ]
+        }
+      }
+    ```
 -   `groq`: 适配 groq API 的请求/响应
 -   `maxtoken`: 设置特定的 `max_tokens` 值。
 -   `tooluse`: 优化某些模型的工具使用(通过`tool_choice`参数)。
@@ -336,6 +354,17 @@ module.exports = async function router(req, config) {
 };
 ```
 
+##### 子代理路由
+
+对于子代理内的路由，您必须在子代理提示词的**开头**包含 `<CCR-SUBAGENT-MODEL>provider,model</CCR-SUBAGENT-MODEL>` 来指定特定的提供商和模型。这样可以将特定的子代理任务定向到指定的模型。
+
+**示例：**
+
+```
+<CCR-SUBAGENT-MODEL>openrouter,anthropic/claude-3.5-sonnet</CCR-SUBAGENT-MODEL>
+请帮我分析这段代码是否存在潜在的优化空间...
+```
+
 
 ## 🤖 GitHub Actions
 
@@ -407,6 +436,8 @@ jobs:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F31GN2GM)
 
+[Paypal](https://paypal.me/musistudio1999)
+
 <table>
   <tr>
     <td><img src="/blog/images/alipay.jpg" width="200" alt="Alipay" /></td>
@@ -418,12 +449,7 @@ jobs:
 
 非常感谢所有赞助商的慷慨支持！
 
-<table>
-  <tr>
-    <td><a href="https://aihubmix.com/" target="_blank"><img src="/blog/images/sponsors/aihubmix.png" width="100" alt="aihubmix" /></a></td>
-  </tr>
-</table>
-
+- [AIHubmix](https://aihubmix.com/)
 - @Simon Leischnig
 - [@duanshuaimin](https://github.com/duanshuaimin)
 - [@vrgitadmin](https://github.com/vrgitadmin)
@@ -463,6 +489,9 @@ jobs:
 - @*鑫
 - @c\*y
 - @\*昕
+- [@witsice](https://github.com/witsice)
+- @b\*g
+- @\*亿
 
 （如果您的名字被屏蔽，请通过我的主页电子邮件与我联系，以便使用您的 GitHub 用户名进行更新。）
 

@@ -258,9 +258,27 @@ Transformers allow you to modify the request and response payloads to ensure com
 
 **Available Built-in Transformers:**
 
+- `Anthropic`:If you use only the `Anthropic` transformer, it will preserve the original request and response parameters(you can use it to connect directly to an Anthropic endpoint).
 - `deepseek`: Adapts requests/responses for DeepSeek API.
 - `gemini`: Adapts requests/responses for Gemini API.
-- `openrouter`: Adapts requests/responses for OpenRouter API.
+- `openrouter`: Adapts requests/responses for OpenRouter API. It can also accept a `provider` routing parameter to specify which underlying providers OpenRouter should use. For more details, refer to the [OpenRouter documentation](https://openrouter.ai/docs/features/provider-routing). See an example below:
+  ```json
+    "transformer": {
+      "use": ["openrouter"],
+      "moonshotai/kimi-k2": {
+        "use": [
+          [
+            "openrouter",
+            {
+              "provider": {
+                "only": ["moonshotai/fp8"]
+              }
+            }
+          ]
+        ]
+      }
+    }
+  ```
 - `groq`: Adapts requests/responses for groq API.
 - `maxtoken`: Sets a specific `max_tokens` value.
 - `tooluse`: Optimizes tool usage for certain models via `tool_choice`.
@@ -342,6 +360,17 @@ module.exports = async function router(req, config) {
 };
 ```
 
+##### Subagent Routing
+
+For routing within subagents, you must specify a particular provider and model by including `<CCR-SUBAGENT-MODEL>provider,model</CCR-SUBAGENT-MODEL>` at the **beginning** of the subagent's prompt. This allows you to direct specific subagent tasks to designated models.
+
+**Example:**
+
+```
+<CCR-SUBAGENT-MODEL>openrouter,anthropic/claude-3.5-sonnet</CCR-SUBAGENT-MODEL>
+Please help me analyze this code snippet for potential optimizations...
+```
+
 ## 🤖 GitHub Actions
 
 Integrate Claude Code Router into your CI/CD pipeline. After setting up [Claude Code Actions](https://docs.anthropic.com/en/docs/claude-code/github-actions), modify your `.github/workflows/claude.yaml` to use the router:
@@ -412,6 +441,8 @@ If you find this project helpful, please consider sponsoring its development. Yo
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/F1F31GN2GM)
 
+[Paypal](https://paypal.me/musistudio1999)
+
 <table>
   <tr>
     <td><img src="/blog/images/alipay.jpg" width="200" alt="Alipay" /></td>
@@ -423,13 +454,8 @@ If you find this project helpful, please consider sponsoring its development. Yo
 
 A huge thank you to all our sponsors for their generous support!
 
-<table>
-  <tr>
-    <td><a href="https://aihubmix.com/" target="_blank"><img src="/blog/images/sponsors/aihubmix.png" width="100" alt="aihubmix" /></a></td>
-  </tr>
-</table>
 
-
+- [AIHubmix](https://aihubmix.com/)
 - @Simon Leischnig
 - [@duanshuaimin](https://github.com/duanshuaimin)
 - [@vrgitadmin](https://github.com/vrgitadmin)
@@ -470,6 +496,9 @@ A huge thank you to all our sponsors for their generous support!
 - @*鑫
 - @c\*y
 - @\*昕
+- [@witsice](https://github.com/witsice)
+- @b\*g
+- @\*亿
 
 
 (If your name is masked, please contact me via my homepage email to update it with your GitHub username.)

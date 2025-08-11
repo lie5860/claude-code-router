@@ -1,8 +1,8 @@
 import { existsSync } from "fs";
 import { writeFile } from "fs/promises";
 import { homedir } from "os";
-import { join } from "path";
-import { initConfig, initDir } from "./utils";
+import path, { join } from "path";
+import { initConfig, initDir, cleanupLogFiles } from "./utils";
 import { createServer } from "./server";
 import { router } from "./utils/router";
 import { apiKeyAuth } from "./middleware/auth";
@@ -12,6 +12,8 @@ import {
   savePid,
 } from "./utils/processCheck";
 import { CONFIG_FILE } from "./constants";
+import createWriteStream from "pino-rotating-file-stream";
+import { HOME_DIR } from "./constants";
 
 async function initializeClaudeConfig() {
   const homeDir = homedir();
@@ -46,14 +48,14 @@ async function run(options: RunOptions = {}) {
 
   await initializeClaudeConfig();
   await initDir();
+  // Clean up old log files, keeping only the 10 most recent ones
+  await cleanupLogFiles();
   const config = await initConfig();
   let HOST = config.HOST;
 
   if (config.HOST && !config.APIKEY) {
     HOST = "127.0.0.1";
-    console.warn(
-      "⚠️ API key is not set. HOST is forced to 127.0.0.1."
-    );
+    console.warn("⚠️ API key is not set. HOST is forced to 127.0.0.1.");
   }
 
   const port = config.PORT || 3456;
@@ -73,12 +75,13 @@ async function run(options: RunOptions = {}) {
     cleanupPidFile();
     process.exit(0);
   });
-  console.log(HOST)
+  console.log(HOST);
 
   // Use port from environment variable if set (for background process)
   const servicePort = process.env.SERVICE_PORT
     ? parseInt(process.env.SERVICE_PORT)
     : port;
+
   const server = createServer({
     jsonPath: CONFIG_FILE,
     initialConfig: {
@@ -92,11 +95,30 @@ async function run(options: RunOptions = {}) {
         "claude-code-router.log"
       ),
     },
+    logger: {
+      level: "debug",
+      stream: createWriteStream({
+        path: HOME_DIR,
+        filename: config.LOGNAME || `./logs/ccr-${+new Date()}.log`,
+        maxFiles: 3,
+        interval: "1d",
+      }),
+    },
   });
-  server.addHook("preHandler", apiKeyAuth(config));
+  // Add async preHandler hook for authentication
   server.addHook("preHandler", async (req, reply) => {
-    if(req.url.startsWith("/v1/messages")) {
-      router(req, reply, config)
+    return new Promise((resolve, reject) => {
+      const done = (err?: Error) => {
+        if (err) reject(err);
+        else resolve();
+      };
+      // Call the async auth function
+      apiKeyAuth(config)(req, reply, done).catch(reject);
+    });
+  });
+  server.addHook("preHandler", async (req, reply) => {
+    if (req.url.startsWith("/v1/messages")) {
+      router(req, reply, config);
     }
   });
   server.start();
